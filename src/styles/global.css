@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  font source:
+  https://github.com/rsms/inter/blob/master/docs/font-files/Inter.var.woff2
+
+  For interchangeable of font-weight, look up for `fontname`.var.woff2
+*/
+
+@font-face {
+    font-family: 'Inter';
+    font-weight: 100 900;
+    font-display: swap;
+    font-named-instance: 'Regular';
+    src: url('../assets/fonts/Inter.var.woff2') format("woff2");
+}
+
+@layer base {
+    html {
+      font-family: 'Inter';
+    }
+}

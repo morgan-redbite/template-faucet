@@ -1,0 +1,28 @@
+.faucet-form {
+    position: absolute;
+    top: 0;
+    margin-top: 77.04px;
+    margin-left: 112px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    .faucet-form-container {
+        width: 600px;
+        background: #FFFFFF;
+        border: 1px solid #EAECF0;
+        border-radius: 8px;
+        padding: 32px;
+        .info-text {
+            @apply flex flex-col gap-1;
+            .focused {
+                @apply text-lg font-medium text-gray-900;
+            }
+            .description {
+                @apply text-sm font-normal text-gray-500;
+            }
+        }
+        .form-container {
+            width: 100%;
+        }
+    }
+}
