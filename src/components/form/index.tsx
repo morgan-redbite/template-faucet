@@ -1,106 +1,154 @@
-import React, { BaseSyntheticEvent, createContext, FormEvent, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { BaseSyntheticEvent, createContext, FormEvent, useContext, useEffect, useRef, useState } from "react";
+import { useForm } from "@mantine/form";
 
 import DefaultTitleIcon from "../../assets/icons/default-title.svg";
+import { getFaucetNetwork, mintFaucetToken } from "../../utils/api/faucet";
 import EZButton from "../common/button/button";
 import Divider from "../common/divider";
 import EZModal from "../common/modal/modal";
-import EZSelect from "../common/select-options/select-options";
-import EZField from "../common/textfield/textfield";
+import { TextInput, Select, Box, LoadingOverlay } from '@mantine/core';
 
 import "./index.scss";
 
-export const useCaller = (ref?: any) => {
-    const [stater, setStater] = useState();
-
-    useEffect(() => {
-        setStater(ref);
-    }, [stater])
-
-    return <div>{stater}</div>;
-}
-
 export const ActionCtx = createContext<any | null>(null);
 
+interface INetwork {
+    name: string,
+    tokens: string[]
+}
+const initialState: INetwork[] = [];
 const InputFields = () => {
+
+    const form = useForm({
+        initialValues: { wallet: '', network: '', token: '' },
+        validate: {
+            wallet: (value) => (!/^(0x)?[0-9a-f]{40}$/i.test(value) ? 'Wallet address invalid (EIP-55 format only)' : null),
+            network: (value) => !value ? 'Network Chain not selected' : null,
+            token: (value) => !value && network ? 'Token not selected' : null,
+        }
+    })
+
+    const [setEnableOverlay] = useContext(OverlayCtx);
+
     const [isSuccess, setIsSuccess] = useState(false);
-    const { register, handleSubmit, getValues, formState: { errors } } = useForm({
-        mode: 'onChange'
-    });
-    const availableNetworks = {
-        0: "ERC20",
-        1: "ADX-W2",
-        2: "PETR-2",
-        3: "KRO50"
+    const [errorMsg, setErrorMsg] = useState("");
+    const [openModal, setOpenModal] = useState(false);
+
+    const [visible, setVisible] = useState(false);
+
+    const [faucetNetwork, setFaucetNetwork] = useState<INetwork[]>(initialState);
+    const [network, setNetwork] = useState<string[]>([]);
+    const [token, setToken] = useState<string[]>([]);
+    const onLoadFaucetNetwork = async () => {
+        setEnableOverlay(true);
+        setVisible(true);
+        try {
+            const { data } = await getFaucetNetwork();
+            let mapNetwork: any[] = [];
+            data.forEach((item: INetwork, index: number) => {
+                mapNetwork.push(item.name)
+            })
+            setFaucetNetwork(data);
+            setNetwork(mapNetwork);
+            
+            setEnableOverlay(false);
+        } catch (error) {
+            console.log('[Error onLoadFaucetNetwork]', error)
+            setEnableOverlay(false);
+        }
     }
 
-    const availableTokens = {
-        0: "USDT",
-        1: "APE",
-        2: "SAND",
-        3: "MAGE"
-    }
+    useEffect(() => {
+        const networkTokens: INetwork | undefined = faucetNetwork.find((network: any) => network.name === form.values.network)
+        if(networkTokens && networkTokens.tokens.length > 0) {
+            let mapToken: any[] = [];
+            networkTokens.tokens.forEach((token: any) => {
+                mapToken.push(token.name);
+            })
+            setToken(mapToken);
+        }
+    }, [form.values.network])
+
+    useEffect(() => {
+        onLoadFaucetNetwork();
+    }, [])
 
     const [wallet, setWallet] = useState<any>();
 
-    console.log('err_network', errors?.network)
-    const submitHandler = async (dataInput: any) => {
-        console.log('em', dataInput.network)
-        setWallet(dataInput.wallet)
-        console.log(wallet)
-        setIsSuccess(true)
+    const submitHandler = async () => {
+        setEnableOverlay(true)
+        
+        setWallet(form.values.wallet);
+
+        const payload = {
+            wallet: form.values.wallet,
+            network: form.values.network,
+            token: form.values.token
+        }
+        try {
+            await mintFaucetToken(payload);
+            setEnableOverlay(false);
+            setOpenModal(true);
+            setIsSuccess(true); 
+        } catch (error: any) {
+            const { data } = error.response;
+            setErrorMsg(data.reason);
+            setEnableOverlay(false);
+            setOpenModal(true);
+            setIsSuccess(false);
+        }
     }
 
     return (
         <>
-        <form onSubmit={handleSubmit(submitHandler)}>
+        <form onSubmit={form.onSubmit(() => submitHandler())}>
             <div className="flex flex-col gap-[20px]">
-            <EZField
-                register={register}
-                name="wallet"
-                setTitle={{show: true, text: "Wallet Address"}} 
-                placeholder="Enter your Wallet Address"
-                implementation={{
-                    required: false,
-                    errorText: errors?.wallet === undefined ? null : "Required"
-                }}
-            />
-            <EZSelect
-                register={register}
-                name="network"
-                setTitle={{show: true, text: "Network"}} 
-                placeholder="Select the network" 
-                data={availableNetworks}
-                implementation={{
-                    required: true,
-                    errorText: errors?.wallet === undefined ? null : "Required"
-                }}
-            />
-            <EZSelect
-                register={register}
-                name="token"
-                setTitle={{show: true, text: "Token (200 ERC-20 tokens (TOKEN_NAME) per hour)"}} 
-                placeholder="Select the token" 
-                data={availableTokens}
-                implementation={{
-                    required: false,
-                    errorText: errors?.wallet === undefined ? null : "Required"
-                }}
-            />
+            <Box className="flex-box">
+                <div className="label">Wallet Address<span className="text-required">*</span></div>
+                <TextInput 
+                    className="injectable-input" 
+                    placeholder="Enter your Wallet Address" 
+                    {...form.getInputProps('wallet')}
+                />
+            </Box>
+            <Box className="flex-box">
+                <div className="label">Network<span className="text-required">*</span></div>
+                <Select
+                    placeholder="Select the network"
+                    className="injectable-input"
+                    data={network}
+                    {...form.getInputProps('network')}
+                    clearable
+                    dropdownPosition="bottom"
+                />
+            </Box>
+            <Box className="flex-box">
+                <div className="label">Token (200 ERC-20 tokens (TOKEN_NAME) per hour)<span className="text-required">*</span></div>
+                <Select
+                    placeholder={!form.values.network ? "Select the network first" : "Select the token"}
+                    className="injectable-input"
+                    disabled={!form.values.network}
+                    data={token}
+                    {...form.getInputProps('token')}
+                    clearable
+                    dropdownPosition="bottom"
+                />
+            </Box>
             </div>
             <div className="mt-8">
                 <EZButton type="submit" text="Submit"/>
             </div>
         </form>
-        <ActionCtx.Provider value={[isSuccess, setIsSuccess, wallet]}>
-            <EZModal open={isSuccess}/>
+        <ActionCtx.Provider value={[isSuccess, setOpenModal, wallet, errorMsg]}>
+            <EZModal open={openModal}/>
         </ActionCtx.Provider>
         </>
     )
 }
-
+const OverlayCtx = createContext<any>("");
 export default function FaucetForm ({enableTitle = true}: {enableTitle?: boolean}) {
-
+    
+    const [enableOverlay, setEnableOverlay] = useState(false);
     return (
         <>
         <div className="faucet-form">
@@ -112,10 +160,13 @@ export default function FaucetForm ({enableTitle = true}: {enableTitle?: boolean
                 </div>
                 <Divider/>
                 <div className="form-container">
-                    <InputFields/>
+                    <OverlayCtx.Provider value={[setEnableOverlay]}>
+                        <InputFields/>
+                    </OverlayCtx.Provider>
                 </div>
             </div>
         </div>
+        <LoadingOverlay style={{position: "fixed"}} visible={enableOverlay} overlayBlur={2} />
         </>
     )
 }

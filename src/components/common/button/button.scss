@@ -6,10 +6,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #FFFFFF;
     text-transform: capitalize;
     border-radius: 8px;
-
+    @apply text-sm font-medium text-white;
     &:hover {
         background-color: #3cbba2;
     }

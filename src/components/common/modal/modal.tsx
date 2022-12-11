@@ -4,9 +4,9 @@ import FailedIcon from "../../../assets/icons/failed-icon.svg";
 
 import { ActionCtx } from "../../form";
 import "./modal.scss";
+import { Box } from "@mantine/core";
 
-const _modal_state = ({setAction, wallet}: {setAction?: any, wallet?: string}) => {
-    console.log(wallet, 'huh')
+const _modal_state = ({setAction, wallet, errorMsg}: {setAction?: any, wallet?: string, errorMsg?: string}) => {
     const _obj_state: any = {
         success: {
             header: <div className="icon"><Icon/></div>,
@@ -28,6 +28,9 @@ const _modal_state = ({setAction, wallet}: {setAction?: any, wallet?: string}) =
                 <div className="msg">Token delivered failed</div>
                 <div className="desc">
                 Token delivered failed. Please contact soonlai@daoventures.co for assist. Thank You.
+                {errorMsg &&
+                <><Box mt={"6px"} className="text-[#FF0000]">Reason: {errorMsg}</Box></>
+                }
                 </div>
             </div>,
             action: <div className="button-failed" onClick={() => setAction(false)}>OK</div>
@@ -39,7 +42,7 @@ const _modal_state = ({setAction, wallet}: {setAction?: any, wallet?: string}) =
 
 export default function EZModal({open = false}: {open: boolean}) {
 
-    const [isSuccess, setIsSuccess, wallet]: [string, any, string] = useContext(ActionCtx)
+    const [isSuccess, setOpenModal, wallet, errorMsg]: [string, any, string, string] = useContext(ActionCtx)
     
     const mode: {[key: string]: string} = {
         true: 'success',
@@ -49,12 +52,12 @@ export default function EZModal({open = false}: {open: boolean}) {
         <>
         {open &&
         <div className="modal-root-absolute">
-            <div onClick={() =>setIsSuccess(false)} className="modal-bg"></div>
+            <div onClick={() => setOpenModal(false)} className="modal-bg"></div>
             <div className="modal-box">
                 {_modal_state({})[mode[isSuccess]].header}
                 {_modal_state({})[mode[isSuccess]].divider}
-                {_modal_state({wallet})[mode[isSuccess]].body}
-                {_modal_state({setAction: setIsSuccess})[mode[isSuccess]].action}
+                {_modal_state({wallet, errorMsg})[mode[isSuccess]].body}
+                {_modal_state({setAction: setOpenModal})[mode[isSuccess]].action}
             </div>
         </div>
         }

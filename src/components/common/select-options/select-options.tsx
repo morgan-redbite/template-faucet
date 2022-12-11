@@ -1,10 +1,11 @@
-import React, { CSSProperties, useEffect, useState, useRef } from "react";
+import React, { CSSProperties, useEffect, useState, useRef, useContext } from "react";
 import ArrowUpIcon from "../../../assets/icons/arrow-up.svg";
 import ArrowDownIcon from "../../../assets/icons/arrow-down.svg";
 
 import "./select-options.scss";
 import { useDivTagListener } from "../../../utils/div-tags-listener";
 import { IImplementation, ISetTitle } from "../../interfaces/EZInterface";
+import { ActionCtx } from "../../form";
 
 const initialTitle: ISetTitle = {
     show: false,
@@ -16,18 +17,11 @@ const initialImplementation: IImplementation = {
     errorText: ""
 }
 
-interface EZSelectTypeCheck {register?: any, name?: string, placeholder?: string, setTitle?: ISetTitle, data: any, implementation?: IImplementation};
+interface EZSelectTypeCheck {name?: string, placeholder?: string, setTitle?: ISetTitle, data: any, implementation?: IImplementation};
 
-export default function EZSelect({register, name, placeholder = "", setTitle = initialTitle, data, implementation = initialImplementation}: EZSelectTypeCheck) {
+export default function EZSelect({name, placeholder = "", setTitle = initialTitle, data, implementation = initialImplementation}: EZSelectTypeCheck) {
     const wrapperRef = useRef(null);
     const allowClose = useDivTagListener(wrapperRef);
-
-    const bind: any = {
-        0: "ERC20",
-        1: "KAVA",
-        2: "HDR",
-        3: "TEST"
-    }
 
     const [selected, setSelected] = useState("");
     const [isShow, setIsShow] = useState(false);
@@ -35,6 +29,8 @@ export default function EZSelect({register, name, placeholder = "", setTitle = i
     const showOptions = (mode: boolean) => {
         setIsShow(mode);
     }
+
+    const [setNetwork] = useContext(ActionCtx);
 
     useEffect(() => {
         if(allowClose) {
@@ -55,9 +51,11 @@ export default function EZSelect({register, name, placeholder = "", setTitle = i
                 <div className="title-placement">{setTitle.text}{implementation.required && <span className="text-required">*</span>}</div>
             }
             <div className="ez-div-select">
-            <input readOnly {...register(name, {
-                required: implementation.required
-            })} placeholder={placeholder} id="tester" value={selected} className="injectable-select-options" onClick={() => showOptions(!isShow)} />
+            <input readOnly 
+            // {...register(name, {
+            //     required: implementation.required
+            // })} 
+            placeholder={placeholder} id="tester" value={selected} className="injectable-select-options" onClick={() => showOptions(!isShow)} />
             {!isShow && <div className="icon-position"><ArrowUpIcon/></div>}
             {isShow && <div className="icon-position"><ArrowDownIcon/></div>}
             </div>
@@ -68,6 +66,7 @@ export default function EZSelect({register, name, placeholder = "", setTitle = i
                         key={index}
                         onClick={() => {
                             setSelected(item);
+                            setNetwork(item);
                             setIsShow(false);
                             onChangeHandler(item)
                         }}

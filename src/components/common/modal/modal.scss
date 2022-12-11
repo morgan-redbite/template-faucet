@@ -39,6 +39,7 @@
 }
 
 .body {
+    max-width: 400px;
     @apply flex flex-col justify-center items-center gap-2 pt-5 pb-5;
     .msg {
         @apply text-lg font-medium text-gray-900;
