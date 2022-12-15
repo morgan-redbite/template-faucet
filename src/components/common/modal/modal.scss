@@ -11,6 +11,10 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    @media only screen and (max-width: 720px) {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
 }
 
 .modal-bg {
@@ -19,15 +23,23 @@
     height: 100%;
     background: rgba(52, 64, 84, 0.7);
     backdrop-filter: blur(8px);
+
 }
 
 .modal-box {
-    min-width: 400px;
-    @apply w-fit;
+    @media only screen and (min-width: 720px) {
+        min-width: 400px;
+        padding: 24px;
+        @apply w-fit;
+    }
+    @media only screen and (max-width: 720px) {
+        min-width: auto;
+        padding: 16px;
+    }
     height: auto;
     background-color: #FFFFFF;
     border-radius: 12px;
-    padding: 24px;
+
     z-index: 1;
 }
 

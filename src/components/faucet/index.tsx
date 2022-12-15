@@ -6,7 +6,7 @@ import * as styles from "./index.module.scss";
 export default function Faucet() {
     return (
         <div className={styles.faucet}>
-            <BG width={"100%"} height={"100%"}/>
+            <BG className={styles.bg}/>
             <FaucetForm/>
         </div>
     )

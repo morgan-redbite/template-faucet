@@ -6,7 +6,7 @@ import { getFaucetNetwork, mintFaucetToken } from "../../utils/api/faucet";
 import EZButton from "../common/button/button";
 import Divider from "../common/divider";
 import EZModal from "../common/modal/modal";
-import { TextInput, Select, Box, LoadingOverlay } from '@mantine/core';
+import { TextInput, Select, Box, LoadingOverlay, Loader } from '@mantine/core';
 
 import "./index.scss";
 
@@ -15,6 +15,10 @@ export const ActionCtx = createContext<any | null>(null);
 interface INetwork {
     name: string,
     tokens: string[]
+}
+interface IToken {
+    name: string,
+    address: string,
 }
 const initialState: INetwork[] = [];
 const InputFields = () => {
@@ -58,6 +62,15 @@ const InputFields = () => {
         }
     }
 
+    const [tokenType, setTokenType] = useState("200 tokens (TOKEN_NAME)");
+
+
+    // const type = {
+    //     "USDC": 
+    //     "WBTC": "200 ERC-20 tokens (TOKEN_NAME)",
+    //     "WETH": "200 ERC-20 tokens (TOKEN_NAME)"
+    // }
+
     useEffect(() => {
         const networkTokens: INetwork | undefined = faucetNetwork.find((network: any) => network.name === form.values.network)
         if(networkTokens && networkTokens.tokens.length > 0) {
@@ -70,13 +83,18 @@ const InputFields = () => {
     }, [form.values.network])
 
     useEffect(() => {
+        const selectedToken: string | undefined = token.find((item: any) => item === form.values.token);
+        
+    }, [form.values.token])
+
+    useEffect(() => {
         onLoadFaucetNetwork();
     }, [])
 
     const [wallet, setWallet] = useState<any>();
-
+    const [isSubmit, setIsSubmit] = useState(false);
     const submitHandler = async () => {
-        setEnableOverlay(true)
+        setIsSubmit(true)
         
         setWallet(form.values.wallet);
 
@@ -87,16 +105,24 @@ const InputFields = () => {
         }
         try {
             await mintFaucetToken(payload);
-            setEnableOverlay(false);
+            setIsSubmit(false);
             setOpenModal(true);
             setIsSuccess(true); 
         } catch (error: any) {
             const { data } = error.response;
             setErrorMsg(data.reason);
-            setEnableOverlay(false);
+            setIsSubmit(false);
             setOpenModal(true);
             setIsSuccess(false);
         }
+    }
+
+    const stringTitle: {[key: string]: string} = {
+        "": "200 tokens (TOKEN_NAME)",
+        "USDC": "200 tokens (USDC)",
+        "USDT": "200 tokens (USDT)",
+        "WBTC": "1 token (WBTC)",
+        "WETH": "1 token (WETH)",
     }
 
     return (
@@ -123,7 +149,7 @@ const InputFields = () => {
                 />
             </Box>
             <Box className="flex-box">
-                <div className="label">Token (200 ERC-20 tokens (TOKEN_NAME) per hour)<span className="text-required">*</span></div>
+                <div className="label">Token ERC-20 ({stringTitle[form.values.token]} per hour)<span className="text-required">*</span></div>
                 <Select
                     placeholder={!form.values.network ? "Select the network first" : "Select the token"}
                     className="injectable-input"
@@ -136,7 +162,7 @@ const InputFields = () => {
             </Box>
             </div>
             <div className="mt-8">
-                <EZButton type="submit" text="Submit"/>
+                <EZButton type="submit" disabled={isSubmit} text={!isSubmit ? <div>Submit</div>: <div><Loader style={{width: "20px"}}/></div>}/>
             </div>
         </form>
         <ActionCtx.Provider value={[isSuccess, setOpenModal, wallet, errorMsg]}>
@@ -164,9 +190,14 @@ export default function FaucetForm ({enableTitle = true}: {enableTitle?: boolean
                         <InputFields/>
                     </OverlayCtx.Provider>
                 </div>
+                {enableOverlay &&
+                    <Box style={{position: "absolute", top: 0, left: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: "100%", height: '100%'}}>
+                        <div><LoadingOverlay visible={enableOverlay}/></div>
+                        <div style={{marginTop: "15%", zIndex: '9999'}} className="fade">Loading resources</div>
+                    </Box>
+                }
             </div>
         </div>
-        <LoadingOverlay style={{position: "fixed"}} visible={enableOverlay} overlayBlur={2} />
         </>
     )
 }

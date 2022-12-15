@@ -1,17 +1,34 @@
 .faucet-form {
     position: absolute;
     top: 0;
-    margin-top: 77.04px;
-    margin-left: 112px;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+
+    @media only screen and (min-width: 720px) {
+        margin-top: 77.04px;
+        margin-left: 112px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+    @media only screen and (max-width: 720px) {
+        margin: 56px 16px 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
     .faucet-form-container {
-        width: 600px;
+        position: relative;
+        @media only screen and (min-width: 720px) {
+            width: 600px;
+            padding: 32px;
+        }
+        @media only screen and (max-width: 720px) {
+            width: fit-content;
+            padding: 24px;
+        }
         background: #FFFFFF;
         border: 1px solid #EAECF0;
         border-radius: 8px;
-        padding: 32px;
+
         .info-text {
             @apply flex flex-col gap-1;
             .focused {
@@ -45,4 +62,12 @@
         }
     }
 
+}
+
+.fade { animation: fadeIn 4s infinite; }
+
+@keyframes fadeIn {
+    0% { opacity: 1; }
+    50% { opacity: 0;}
+    100% { opacity: 1; }
 }
