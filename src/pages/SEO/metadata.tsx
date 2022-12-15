@@ -1,5 +1,5 @@
 import * as React from "react"
-export const Metadata = () => {
+export default function Metadata() {
     return (
         <>
             <meta charSet="utf-8" />
