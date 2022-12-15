@@ -5,7 +5,7 @@ import App from "../components"
 import "./index.scss";
 import EZModal from "../components/common/modal/modal";
 import favicon from "./"
-import { Metadata } from "./SEO/metadata";
+import Metadata from "./SEO/metadata";
 
 const IndexPage: React.FC<PageProps> = () => {
   return (
