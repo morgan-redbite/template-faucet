@@ -2,11 +2,18 @@ import React, { Dispatch, useContext } from "react";
 import Icon from "../../../assets/icons/Securo.svg";
 import FailedIcon from "../../../assets/icons/failed-icon.svg";
 
-import { ActionCtx } from "../../form";
-import "./modal.scss";
 import { Box } from "@mantine/core";
+import { useAppSelector } from "../../../store/hooks";
+import { ActionCtx } from "../../form";
 
-const _modal_state = ({setAction, wallet, errorMsg}: {setAction?: any, wallet?: string, errorMsg?: string}) => {
+import "./modal.scss";
+
+const _modal_state = ({setAction, selectedToken="", wallet, errorMsg}: {setAction?: any, selectedToken?: string, wallet?: string, errorMsg?: string}) => {
+    
+    const controlAmount: {[key: string]: string} = useAppSelector(
+        (state) => state.setting.controlAmount
+    );
+
     const _obj_state: any = {
         success: {
             header: <div className="icon"><Icon/></div>,
@@ -15,7 +22,7 @@ const _modal_state = ({setAction, wallet, errorMsg}: {setAction?: any, wallet?: 
             <div className="body">
                 <div className="msg">Successful!</div>
                 <div className="desc">
-                200 Token has been delivered to <br/><span className="wallet-address">{wallet}</span>
+                {controlAmount[selectedToken]} Token has been delivered to <br/><span className="wallet-address">{wallet}</span>
                 </div>
             </div>,
             action: <div className="button-success" onClick={() => setAction(false)}>Confirm</div>
@@ -42,7 +49,7 @@ const _modal_state = ({setAction, wallet, errorMsg}: {setAction?: any, wallet?: 
 
 export default function EZModal({open = false}: {open: boolean}) {
 
-    const [isSuccess, setOpenModal, wallet, errorMsg]: [string, any, string, string] = useContext(ActionCtx)
+    const [isSuccess, setOpenModal, selectedToken, wallet, errorMsg]: [string, any, string, string, string] = useContext(ActionCtx)
     
     const mode: {[key: string]: string} = {
         true: 'success',
@@ -56,7 +63,7 @@ export default function EZModal({open = false}: {open: boolean}) {
             <div className="modal-box">
                 {_modal_state({})[mode[isSuccess]].header}
                 {_modal_state({})[mode[isSuccess]].divider}
-                {_modal_state({wallet, errorMsg})[mode[isSuccess]].body}
+                {_modal_state({selectedToken, wallet, errorMsg})[mode[isSuccess]].body}
                 {_modal_state({setAction: setOpenModal})[mode[isSuccess]].action}
             </div>
         </div>

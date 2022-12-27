@@ -10,11 +10,22 @@ export const getFaucetNetwork = async () => {
     }
 }
 
+export const getControlledAmount = async () => {
+    try {
+        const result = await axios.get('/api/v1/controlled-amount');
+        return result;
+    } catch (error) {
+        console.log('[Error in getControlledAmount]');
+        throw new Error("Error: getControlledAmount")
+    }
+}
+
 interface IPayload {
     wallet: string;
     network: string;
     token: string;
 }
+
 export const mintFaucetToken = async (payload: IPayload) => {
     try {
         const result = await axios.post('/api/v1/claim-faucet-v2', payload);

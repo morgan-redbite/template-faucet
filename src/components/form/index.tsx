@@ -9,6 +9,7 @@ import EZModal from "../common/modal/modal";
 import { TextInput, Select, Box, LoadingOverlay, Loader } from '@mantine/core';
 
 import "./index.scss";
+import { useAppSelector } from "../../store/hooks";
 
 export const ActionCtx = createContext<any | null>(null);
 
@@ -20,8 +21,13 @@ interface IToken {
     name: string,
     address: string,
 }
+
 const initialState: INetwork[] = [];
 const InputFields = () => {
+
+    const controlAmount: {[key: string]: string} = useAppSelector(
+        (state) => state.setting.controlAmount
+    );
 
     const form = useForm({
         initialValues: { wallet: '', network: '', token: '' },
@@ -43,6 +49,7 @@ const InputFields = () => {
     const [faucetNetwork, setFaucetNetwork] = useState<INetwork[]>(initialState);
     const [network, setNetwork] = useState<string[]>([]);
     const [token, setToken] = useState<string[]>([]);
+    const [selectedToken, setSelectedToken] = useState<string>();
     const onLoadFaucetNetwork = async () => {
         setEnableOverlay(true);
         setVisible(true);
@@ -61,15 +68,6 @@ const InputFields = () => {
             setEnableOverlay(false);
         }
     }
-
-    const [tokenType, setTokenType] = useState("200 tokens (TOKEN_NAME)");
-
-
-    // const type = {
-    //     "USDC": 
-    //     "WBTC": "200 ERC-20 tokens (TOKEN_NAME)",
-    //     "WETH": "200 ERC-20 tokens (TOKEN_NAME)"
-    // }
 
     useEffect(() => {
         const networkTokens: INetwork | undefined = faucetNetwork.find((network: any) => network.name === form.values.network)
@@ -97,7 +95,7 @@ const InputFields = () => {
         setIsSubmit(true)
         
         setWallet(form.values.wallet);
-
+        setSelectedToken(form.values.token);
         const payload = {
             wallet: form.values.wallet,
             network: form.values.network,
@@ -115,14 +113,6 @@ const InputFields = () => {
             setOpenModal(true);
             setIsSuccess(false);
         }
-    }
-
-    const stringTitle: {[key: string]: string} = {
-        "": "200 tokens (TOKEN_NAME)",
-        "USDC": "200 tokens (USDC)",
-        "USDT": "200 tokens (USDT)",
-        "WBTC": "1 token (WBTC)",
-        "WETH": "1 token (WETH)",
     }
 
     return (
@@ -149,7 +139,7 @@ const InputFields = () => {
                 />
             </Box>
             <Box className="flex-box">
-                <div className="label">Token ERC-20 ({stringTitle[form.values.token]} per hour)<span className="text-required">*</span></div>
+                <div className="label">Token ERC-20 ({controlAmount[form.values.token]} per hour)<span className="text-required">*</span></div>
                 <Select
                     placeholder={!form.values.network ? "Select the network first" : "Select the token"}
                     className="injectable-input"
@@ -165,7 +155,7 @@ const InputFields = () => {
                 <EZButton type="submit" disabled={isSubmit} text={!isSubmit ? <div>Submit</div>: <div><Loader style={{width: "20px"}}/></div>}/>
             </div>
         </form>
-        <ActionCtx.Provider value={[isSuccess, setOpenModal, wallet, errorMsg]}>
+        <ActionCtx.Provider value={[isSuccess, setOpenModal, selectedToken, wallet, errorMsg]}>
             <EZModal open={openModal}/>
         </ActionCtx.Provider>
         </>
